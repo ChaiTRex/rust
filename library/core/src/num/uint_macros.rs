@@ -1491,6 +1491,16 @@ macro_rules! uint_impl {
                       without modifying the original"]
         #[inline]
         pub const fn checked_ilog(self, base: Self) -> Option<u32> {
+            // Inform compiler of optimizations when the base is known at
+            // compile time and there's a cheaper method available.
+            if core::intrinsics::is_val_statically_known(base) {
+                if base == 2 {
+                    return self.checked_ilog2();
+                } else if base == 10 {
+                    return self.checked_ilog10();
+                }
+            }
+
             if self <= 0 || base <= 1 {
                 None
             } else if self < base {
